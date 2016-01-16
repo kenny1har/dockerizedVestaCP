@@ -1,7 +1,7 @@
 VestaCP on Docker [![Build Status](https://travis-ci.org/lagun4ik/dockerizedVestaCP.svg)](https://travis-ci.org/lagun4ik/dockerizedVestaCP)
 ----
 
-A dockerized version of VestaCP. Without FTP server.
+A dockerized version of VestaCP. [Without FTP server](#ssh-and-ftp).
 
 ## Usage
 
