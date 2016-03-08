@@ -400,7 +400,6 @@ apt-key add deb_signing.key
 # Installing php7 repo
 apt-get -y install python-software-properties language-pack-en-base
 LC_ALL=en_US.UTF-8 add-apt-repository ppa:ondrej/php -y
-LC_ALL=en_US.UTF-8 add-apt-repository ppa:nijel/phpmyadmin -y
 
 
 #----------------------------------------------------------#
@@ -410,17 +409,12 @@ LC_ALL=en_US.UTF-8 add-apt-repository ppa:nijel/phpmyadmin -y
 # Creating backup directory tree
 mkdir -p $vst_backups
 cd $vst_backups
-mkdir nginx apache2 php7.0 php7.0-fpm vsftpd proftpd bind exim4 dovecot clamd
+mkdir nginx php7.0 php7.0-fpm vsftpd proftpd bind exim4 dovecot clamd
 mkdir spamassassin mysql postgresql mongodb vesta
 
 # Backing up Nginx configuration
 service nginx stop > /dev/null 2>&1
 cp -r /etc/nginx/* $vst_backups/nginx >/dev/null 2>&1
-
-# Backing up Apache configuration
-service apache2 stop > /dev/null 2>&1
-cp -r /etc/apache2/* $vst_backups/apache2 > /dev/null 2>&1
-rm -f /etc/apache2/conf.d/* > /dev/null 2>&1
 
 # Backing up PHP configuration
 cp /etc/php.ini $vst_backups/php > /dev/null 2>&1
@@ -479,24 +473,10 @@ rm -rf /usr/local/vesta > /dev/null 2>&1
 #                     Package Exludes                      #
 #----------------------------------------------------------#
 
-# Excluding packages
-if [ "$release" != "15.04" ] && [ "$release" != "15.04" ]; then
-    software=$(echo "$software" | sed -e "s/apache2.2-common//")
-fi
-
 if [ "$nginx" = 'no'  ]; then
     software=$(echo "$software" | sed -e "s/^nginx//")
 fi
-if [ "$apache" = 'no' ]; then
-    software=$(echo "$software" | sed -e "s/apache2 //")
-    software=$(echo "$software" | sed -e "s/apache2-utils//")
-    software=$(echo "$software" | sed -e "s/apache2-suexec-custom//")
-    software=$(echo "$software" | sed -e "s/apache2.2-common//")
-    software=$(echo "$software" | sed -e "s/libapache2-mod-ruid2//")
-    software=$(echo "$software" | sed -e "s/libapache2-mod-rpaf//")
-    software=$(echo "$software" | sed -e "s/libapache2-mod-fcgid//")
-    software=$(echo "$software" | sed -e "s/libapache2-mod-php7.0//")
-fi
+
 if [ "$phpfpm" = 'no' ]; then
     software=$(echo "$software" | sed -e "s/php7.0-fpm//")
 fi
@@ -646,78 +626,21 @@ touch $VESTA/conf/vesta.conf
 chmod 660 $VESTA/conf/vesta.conf
 
 # WEB stack
-if [ "$apache" = 'yes' ] && [ "$nginx" = 'no' ] ; then
-    echo "WEB_SYSTEM='apache2'" >> $VESTA/conf/vesta.conf
-    echo "WEB_RGROUPS='www-data'" >> $VESTA/conf/vesta.conf
-    echo "WEB_PORT='80'" >> $VESTA/conf/vesta.conf
-    echo "WEB_SSL_PORT='443'" >> $VESTA/conf/vesta.conf
-    echo "WEB_SSL='mod_ssl'"  >> $VESTA/conf/vesta.conf
-    echo "STATS_SYSTEM='webalizer,awstats'" >> $VESTA/conf/vesta.conf
-fi
-if [ "$apache" = 'yes' ] && [ "$nginx"  = 'yes' ] ; then
-    echo "WEB_SYSTEM='apache2'" >> $VESTA/conf/vesta.conf
-    echo "WEB_RGROUPS='www-data'" >> $VESTA/conf/vesta.conf
-    echo "WEB_PORT='8080'" >> $VESTA/conf/vesta.conf
-    echo "WEB_SSL_PORT='8443'" >> $VESTA/conf/vesta.conf
-    echo "WEB_SSL='mod_ssl'"  >> $VESTA/conf/vesta.conf
-    echo "PROXY_SYSTEM='nginx'" >> $VESTA/conf/vesta.conf
-    echo "PROXY_PORT='80'" >> $VESTA/conf/vesta.conf
-    echo "PROXY_SSL_PORT='443'" >> $VESTA/conf/vesta.conf
-    echo "STATS_SYSTEM='webalizer,awstats'" >> $VESTA/conf/vesta.conf
-fi
-if [ "$apache" = 'no' ] && [ "$nginx"  = 'yes' ]; then
-    echo "WEB_SYSTEM='nginx'" >> $VESTA/conf/vesta.conf
-    echo "WEB_PORT='80'" >> $VESTA/conf/vesta.conf
-    echo "WEB_SSL_PORT='443'" >> $VESTA/conf/vesta.conf
-    echo "WEB_SSL='openssl'"  >> $VESTA/conf/vesta.conf
-    if [ "$phpfpm" = 'yes' ]; then
-        echo "WEB_BACKEND='php7.0-fpm'" >> $VESTA/conf/vesta.conf
-    fi
-    echo "STATS_SYSTEM='webalizer,awstats'" >> $VESTA/conf/vesta.conf
-fi
+echo "WEB_SYSTEM='nginx'" >> $VESTA/conf/vesta.conf
+echo "WEB_PORT='80'" >> $VESTA/conf/vesta.conf
+echo "WEB_SSL_PORT='443'" >> $VESTA/conf/vesta.conf
+echo "WEB_SSL='openssl'"  >> $VESTA/conf/vesta.conf
+echo "WEB_BACKEND='php7.0-fpm'" >> $VESTA/conf/vesta.conf
+echo "STATS_SYSTEM='webalizer,awstats'" >> $VESTA/conf/vesta.conf
 
-# FTP stack
-if [ "$vsftpd" = 'yes' ]; then
-    echo "FTP_SYSTEM='vsftpd'" >> $VESTA/conf/vesta.conf
-fi
-if [ "$proftpd" = 'yes' ]; then
-    echo "FTP_SYSTEM='proftpd'" >> $VESTA/conf/vesta.conf
-fi
-
-# DNS stack
-if [ "$named" = 'yes' ]; then
-    echo "DNS_SYSTEM='bind9'" >> $VESTA/conf/vesta.conf
-fi
 
 # Mail stack
 if [ "$exim" = 'yes' ]; then
     echo "MAIL_SYSTEM='exim4'" >> $VESTA/conf/vesta.conf
-    if [ "$clamd" = 'yes'  ]; then
-        echo "ANTIVIRUS_SYSTEM='clamav-daemon'" >> $VESTA/conf/vesta.conf
-    fi
-    if [ "$spamd" = 'yes' ]; then
-        echo "ANTISPAM_SYSTEM='spamassassin'" >> $VESTA/conf/vesta.conf
-    fi
-    if [ "$dovecot" = 'yes' ]; then
-        echo "IMAP_SYSTEM='dovecot'" >> $VESTA/conf/vesta.conf
-    fi
 fi
 
 # CRON daemon
 echo "CRON_SYSTEM='cron'" >> $VESTA/conf/vesta.conf
-
-# Firewall stack
-if [ "$iptables" = 'yes' ]; then
-    echo "FIREWALL_SYSTEM='iptables'" >> $VESTA/conf/vesta.conf
-fi
-if [ "$iptables" = 'yes' ] && [ "$fail2ban" = 'yes' ]; then
-    echo "FIREWALL_EXTENSION='fail2ban'" >> $VESTA/conf/vesta.conf
-fi
-
-# Disk quota
-if [ "$quota" = 'yes' ]; then
-    echo "DISK_QUOTA='yes'" >> $VESTA/conf/vesta.conf
-fi
 
 # Backups
 echo "BACKUP_SYSTEM='local'" >> $VESTA/conf/vesta.conf
@@ -790,36 +713,6 @@ fi
 
 
 #----------------------------------------------------------#
-#                    Configure Apache                      #
-#----------------------------------------------------------#
-
-if [ "$apache" = 'yes'  ]; then
-    wget $vestacp/apache2/apache2.conf -O /etc/apache2/apache2.conf
-    wget $vestacp/apache2/status.conf -O /etc/apache2/mods-enabled/status.conf
-    wget $vestacp/logrotate/apache2 -O /etc/logrotate.d/apache2
-    a2enmod rewrite
-    a2enmod suexec
-    a2enmod ssl
-    a2enmod actions
-    a2enmod ruid2
-    mkdir -p /etc/apache2/conf.d
-    echo > /etc/apache2/conf.d/vesta.conf
-    echo "# Powered by vesta" > /etc/apache2/sites-available/default
-    echo "# Powered by vesta" > /etc/apache2/sites-available/default-ssl
-    echo "# Powered by vesta" > /etc/apache2/ports.conf
-    echo -e "/home\npublic_html/cgi-bin" > /etc/apache2/suexec/www-data
-    touch /var/log/apache2/access.log /var/log/apache2/error.log
-    mkdir -p /var/log/apache2/domains
-    chmod a+x /var/log/apache2
-    chmod 640 /var/log/apache2/access.log /var/log/apache2/error.log
-    chmod 751 /var/log/apache2/domains
-    #update-rc.d apache2 defaults
-    service apache2 start
-    #check_result $? "apache2 start failed"
-fi
-
-
-#----------------------------------------------------------#
 #                     Configure PHP-FPM                    #
 #----------------------------------------------------------#
 
@@ -844,30 +737,6 @@ for pconf in $(find /etc/php* -name php.ini); do
     sed -i 's%_open_tag = Off%_open_tag = On%g' $pconf
 done
 
-
-#----------------------------------------------------------#
-#                    Configure VSFTPD                      #
-#----------------------------------------------------------#
-
-if [ "$vsftpd" = 'yes' ]; then
-    wget $vestacp/vsftpd/vsftpd.conf -O /etc/vsftpd.conf
-    #update-rc.d vsftpd defaults
-    service vsftpd start
-    #check_result $? "vsftpd start failed"
-fi
-
-
-#----------------------------------------------------------#
-#                    Configure ProFTPD                     #
-#----------------------------------------------------------#
-
-if [ "$proftpd" = 'yes' ]; then
-    echo "127.0.0.1 $servername" >> /etc/hosts
-    wget $vestacp/proftpd/proftpd.conf -O /etc/proftpd/proftpd.conf
-    #update-rc.d proftpd defaults
-    service proftpd start
-    #check_result $? "proftpd start failed"
-fi
 
 
 #----------------------------------------------------------#
@@ -900,11 +769,12 @@ if [ "$mysql" = 'yes' ]; then
     mysql -e "DELETE FROM mysql.user WHERE user='' or password='';"
     mysql -e "FLUSH PRIVILEGES"
 
-    # Configuring phpMyAdmin
-    if [ "$apache" = 'yes' ]; then
-        wget $vestacp/pma/apache.conf -O /etc/phpmyadmin/apache.conf
-        ln -s /etc/phpmyadmin/apache.conf /etc/apache2/conf.d/phpmyadmin.conf
-    fi
+    # phpMyAdmin
+    wget https://github.com/phpmyadmin/phpmyadmin/archive/RELEASE_4_4_15_2.zip -O /tmp/RELEASE_4_4_15_2.zip
+    unzip /tmp/RELEASE_4_4_15_2.zip -d /tmp/phpmyadmin
+    mkdir -p /etc/phpmyadmin
+    mv /tmp/phpmyadmin/phpmyadmin-RELEASE_4_4_15_2/* /etc/phpmyadmin
+    rm /tmp/RELEASE_4_4_15_2.zip
     wget $vestacp/pma/config.inc.php -O /etc/phpmyadmin/config.inc.php
     chmod 777 /var/lib/phpmyadmin/tmp
 fi
