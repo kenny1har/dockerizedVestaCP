@@ -14,7 +14,7 @@ docker run -d \
   -p 2222:22 -p 80:80 -p 8083:8083 -p 3306:3306 -p 443:443 \
   -p 25:25 -p 993:993 -p 110:110  -p 53:53 -p 54:54 \
   -v /var/vesta:/vesta \
-  lagun4ik/vestacp:feature_php7
+  lagun4ik/vestacp:php7
 ```
 
 `apache + nginx + php5`
