@@ -410,6 +410,10 @@ echo "deb http://$RHOST/$codename/ $codename vesta" > $apt/vesta.list
 wget $CHOST/deb_signing.key -O deb_signing.key
 apt-key add deb_signing.key
 
+# Installing php7 repo
+apt-get -y install python-software-properties language-pack-en-base
+LC_ALL=en_US.UTF-8 add-apt-repository ppa:ondrej/php -y
+
 
 #----------------------------------------------------------#
 #                         Backup                           #
