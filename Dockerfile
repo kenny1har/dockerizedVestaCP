@@ -1,6 +1,8 @@
-FROM phusion/baseimage:
+FROM phusion/baseimage
 
 MAINTAINER ivan@lagunovsky.com
+
+ENV VESTA /usr/local/vesta
 
 RUN apt-get update \
  && apt-get -y upgrade \
