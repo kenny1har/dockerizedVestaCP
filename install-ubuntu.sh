@@ -20,7 +20,7 @@ software="nginx php7.0 php7.0-common php7.0-cgi php7.0-mysql php7.0-fpm php7.0-c
         awstats webalizer vsftpd
         proftpd-basic bind9 exim4 exim4-daemon-heavy clamav-daemon
         spamassassin dovecot-imapd dovecot-pop3d
-        mysql-server mysql-common mysql-client phpMyAdmin
+        mysql-server mysql-common mysql-client
         postgresql postgresql-contrib phppgadmin
         mc flex whois rssh git idn zip sudo bc ftp lsof ntpdate rrdtool quota
         e2fslibs bsdutils e2fsprogs curl imagemagick fail2ban dnsutils
