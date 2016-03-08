@@ -31,7 +31,6 @@ RUN cd /usr/local/vesta/data/ips && mv * 127.0.0.1 \
     && cd /etc/nginx/conf.d && sed -i -- 's/172.*.*.*:80 default;/80 default;/g' * && sed -i -- 's/172.*.*.*:8080/127.0.0.1:8080/g' *
 
 
-
 RUN rm -f /etc/service/sshd/down \
     && /etc/my_init.d/00_regen_ssh_host_keys.sh
 
@@ -45,16 +44,15 @@ RUN mkdir /vesta-start \
     && mv /etc/apache2 /vesta-start/etc/apache2 \
     && rm -rf /etc/apache2 \
     && ln -s /vesta/etc/apache2 /etc/apache2 \
-    && mv /etc/php   /vesta-start/etc/php \
-    && rm -rf /etc/php \
-    && ln -s /vesta/etc/php /etc/php \
+    && mv /etc/php5   /vesta-start/etc/php5 \
+    && rm -rf /etc/php5 \
+    && ln -s /vesta/etc/php5 /etc/php5 \
     && mv /etc/nginx   /vesta-start/etc/nginx \
     && rm -rf /etc/nginx \
     && ln -s /vesta/etc/nginx /etc/nginx \
     && mv /etc/exim4   /vesta-start/etc/exim4 \
     && rm -rf /etc/exim4 \
     && ln -s /vesta/etc/exim4 /etc/exim4 \
-
     && mv /etc/mysql   /vesta-start/etc/mysql \
     && rm -rf /etc/mysql \
     && ln -s /vesta/etc/mysql /etc/mysql \
