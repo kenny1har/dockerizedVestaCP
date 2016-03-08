@@ -16,13 +16,15 @@ os='ubuntu'
 release="$(lsb_release -r|awk '{print $2}')"
 codename="$(lsb_release -c|awk '{print $2}')"
 vestacp="http://$CHOST/$VERSION/$release"
-software="nginx php7.0 php7.0-common php7.0-cgi php7.0-mysql php7.0-fpm php7.0-curl php7.0-pgsql php7.0-mcrypt
-        awstats webalizer vsftpd
+software="nginx apache2 apache2-utils apache2.2-common
+        apache2-suexec-custom libapache2-mod-ruid2 libapache2-mod-rpaf
+        libapache2-mod-fcgid libapache2-mod-php5 php5 php5-common php5-cgi
+        php5-mysql php5-curl php5-fpm php5-pgsql awstats webalizer vsftpd
         proftpd-basic bind9 exim4 exim4-daemon-heavy clamav-daemon
-        spamassassin dovecot-imapd dovecot-pop3d
-        mysql-server mysql-common mysql-client
-        postgresql postgresql-contrib phppgadmin
-        mc flex whois rssh git idn zip sudo bc ftp lsof ntpdate rrdtool quota
+        spamassassin dovecot-imapd dovecot-pop3d roundcube-core
+        roundcube-mysql roundcube-plugins mysql-server mysql-common
+        mysql-client postgresql postgresql-contrib phppgadmin phpMyAdmin mc
+        flex whois rssh git idn zip sudo bc ftp lsof ntpdate rrdtool quota
         e2fslibs bsdutils e2fsprogs curl imagemagick fail2ban dnsutils
         bsdmainutils cron vesta vesta-nginx vesta-php"
 
@@ -377,6 +379,20 @@ sleep 5
 
 
 #----------------------------------------------------------#
+#                      Checking swap                       #
+#----------------------------------------------------------#
+
+# Checking swap on small instances
+if [ -z "$(swapon -s)" ] && [ $memory -lt 1000000 ]; then
+    fallocate -l 1G /swapfile
+    chmod 600 /swapfile
+    mkswap /swapfile
+    swapon /swapfile
+    echo "/swapfile   none    swap    sw    0   0" >> /etc/fstab
+fi
+
+
+#----------------------------------------------------------#
 #                   Install repository                     #
 #----------------------------------------------------------#
 
@@ -395,10 +411,6 @@ echo "deb http://$RHOST/$codename/ $codename vesta" > $apt/vesta.list
 wget $CHOST/deb_signing.key -O deb_signing.key
 apt-key add deb_signing.key
 
-# Installing php7 repo
-apt-get -y install python-software-properties language-pack-en-base
-LC_ALL=en_US.UTF-8 add-apt-repository ppa:ondrej/php -y
-
 
 #----------------------------------------------------------#
 #                         Backup                           #
@@ -407,21 +419,26 @@ LC_ALL=en_US.UTF-8 add-apt-repository ppa:ondrej/php -y
 # Creating backup directory tree
 mkdir -p $vst_backups
 cd $vst_backups
-mkdir nginx php7.0 php7.0-fpm vsftpd proftpd bind exim4 dovecot clamd
+mkdir nginx apache2 php5 php5-fpm vsftpd proftpd bind exim4 dovecot clamd
 mkdir spamassassin mysql postgresql mongodb vesta
 
 # Backing up Nginx configuration
 service nginx stop > /dev/null 2>&1
 cp -r /etc/nginx/* $vst_backups/nginx >/dev/null 2>&1
 
+# Backing up Apache configuration
+service apache2 stop > /dev/null 2>&1
+cp -r /etc/apache2/* $vst_backups/apache2 > /dev/null 2>&1
+rm -f /etc/apache2/conf.d/* > /dev/null 2>&1
+
 # Backing up PHP configuration
 cp /etc/php.ini $vst_backups/php > /dev/null 2>&1
 cp -r /etc/php.d  $vst_backups/php > /dev/null 2>&1
 
 # Backing up PHP configuration
-service php7.0-fpm stop >/dev/null 2>&1
-cp /etc/php7.0/* $vst_backups/php7.0 > /dev/null 2>&1
-rm -f /etc/php7.0/fpm/pool.d/* >/dev/null 2>&1
+service php5-fpm stop >/dev/null 2>&1
+cp /etc/php5/* $vst_backups/php5 > /dev/null 2>&1
+rm -f /etc/php5/fpm/pool.d/* >/dev/null 2>&1
 
 # Backing up Bind configuration
 service bind9 stop > /dev/null 2>&1
@@ -471,12 +488,26 @@ rm -rf /usr/local/vesta > /dev/null 2>&1
 #                     Package Exludes                      #
 #----------------------------------------------------------#
 
+# Excluding packages
+if [ "$release" != "15.04" ] && [ "$release" != "15.04" ]; then
+    software=$(echo "$software" | sed -e "s/apache2.2-common//")
+fi
+
 if [ "$nginx" = 'no'  ]; then
     software=$(echo "$software" | sed -e "s/^nginx//")
 fi
-
+if [ "$apache" = 'no' ]; then
+    software=$(echo "$software" | sed -e "s/apache2 //")
+    software=$(echo "$software" | sed -e "s/apache2-utils//")
+    software=$(echo "$software" | sed -e "s/apache2-suexec-custom//")
+    software=$(echo "$software" | sed -e "s/apache2.2-common//")
+    software=$(echo "$software" | sed -e "s/libapache2-mod-ruid2//")
+    software=$(echo "$software" | sed -e "s/libapache2-mod-rpaf//")
+    software=$(echo "$software" | sed -e "s/libapache2-mod-fcgid//")
+    software=$(echo "$software" | sed -e "s/libapache2-mod-php5//")
+fi
 if [ "$phpfpm" = 'no' ]; then
-    software=$(echo "$software" | sed -e "s/php7.0-fpm//")
+    software=$(echo "$software" | sed -e "s/php5-fpm//")
 fi
 if [ "$vsftpd" = 'no' ]; then
     software=$(echo "$software" | sed -e "s/vsftpd//")
@@ -495,7 +526,6 @@ if [ "$exim" = 'no' ]; then
     software=$(echo "$software" | sed -e "s/dovecot-pop3d//")
     software=$(echo "$software" | sed -e "s/clamav-daemon//")
     software=$(echo "$software" | sed -e "s/spamassassin//")
-    software=$(echo "$software" | sed -e "s/php7.0-mcrypt//")
 fi
 if [ "$clamd" = 'no' ]; then
     software=$(echo "$software" | sed -e "s/clamav-daemon//")
@@ -511,13 +541,13 @@ if [ "$mysql" = 'no' ]; then
     software=$(echo "$software" | sed -e 's/mysql-server//')
     software=$(echo "$software" | sed -e 's/mysql-client//')
     software=$(echo "$software" | sed -e 's/mysql-common//')
-    software=$(echo "$software" | sed -e 's/php7.0-mysql//')
+    software=$(echo "$software" | sed -e 's/php5-mysql//')
     software=$(echo "$software" | sed -e 's/phpMyAdmin//')
 fi
 if [ "$postgresql" = 'no' ]; then
     software=$(echo "$software" | sed -e 's/postgresql-contrib//')
     software=$(echo "$software" | sed -e 's/postgresql//')
-    software=$(echo "$software" | sed -e 's/php7.0-pgsql//')
+    software=$(echo "$software" | sed -e 's/php5-pgsql//')
     software=$(echo "$software" | sed -e 's/phppgadmin//')
 fi
 if [ "$iptables" = 'no' ] || [ "$fail2ban" = 'no' ]; then
@@ -535,8 +565,6 @@ apt-get update
 # Disable daemon autostart /usr/share/doc/sysv-rc/README.policy-rc.d.gz
 echo -e '#!/bin/sh \nexit 101' > /usr/sbin/policy-rc.d
 chmod a+x /usr/sbin/policy-rc.d
-
-echo $software
 
 # Install apt packages
 apt-get -y install $software
@@ -624,21 +652,78 @@ touch $VESTA/conf/vesta.conf
 chmod 660 $VESTA/conf/vesta.conf
 
 # WEB stack
-echo "WEB_SYSTEM='nginx'" >> $VESTA/conf/vesta.conf
-echo "WEB_PORT='80'" >> $VESTA/conf/vesta.conf
-echo "WEB_SSL_PORT='443'" >> $VESTA/conf/vesta.conf
-echo "WEB_SSL='openssl'"  >> $VESTA/conf/vesta.conf
-echo "WEB_BACKEND='php7.0-fpm'" >> $VESTA/conf/vesta.conf
-echo "STATS_SYSTEM='webalizer,awstats'" >> $VESTA/conf/vesta.conf
+if [ "$apache" = 'yes' ] && [ "$nginx" = 'no' ] ; then
+    echo "WEB_SYSTEM='apache2'" >> $VESTA/conf/vesta.conf
+    echo "WEB_RGROUPS='www-data'" >> $VESTA/conf/vesta.conf
+    echo "WEB_PORT='80'" >> $VESTA/conf/vesta.conf
+    echo "WEB_SSL_PORT='443'" >> $VESTA/conf/vesta.conf
+    echo "WEB_SSL='mod_ssl'"  >> $VESTA/conf/vesta.conf
+    echo "STATS_SYSTEM='webalizer,awstats'" >> $VESTA/conf/vesta.conf
+fi
+if [ "$apache" = 'yes' ] && [ "$nginx"  = 'yes' ] ; then
+    echo "WEB_SYSTEM='apache2'" >> $VESTA/conf/vesta.conf
+    echo "WEB_RGROUPS='www-data'" >> $VESTA/conf/vesta.conf
+    echo "WEB_PORT='8080'" >> $VESTA/conf/vesta.conf
+    echo "WEB_SSL_PORT='8443'" >> $VESTA/conf/vesta.conf
+    echo "WEB_SSL='mod_ssl'"  >> $VESTA/conf/vesta.conf
+    echo "PROXY_SYSTEM='nginx'" >> $VESTA/conf/vesta.conf
+    echo "PROXY_PORT='80'" >> $VESTA/conf/vesta.conf
+    echo "PROXY_SSL_PORT='443'" >> $VESTA/conf/vesta.conf
+    echo "STATS_SYSTEM='webalizer,awstats'" >> $VESTA/conf/vesta.conf
+fi
+if [ "$apache" = 'no' ] && [ "$nginx"  = 'yes' ]; then
+    echo "WEB_SYSTEM='nginx'" >> $VESTA/conf/vesta.conf
+    echo "WEB_PORT='80'" >> $VESTA/conf/vesta.conf
+    echo "WEB_SSL_PORT='443'" >> $VESTA/conf/vesta.conf
+    echo "WEB_SSL='openssl'"  >> $VESTA/conf/vesta.conf
+    if [ "$phpfpm" = 'yes' ]; then
+        echo "WEB_BACKEND='php5-fpm'" >> $VESTA/conf/vesta.conf
+    fi
+    echo "STATS_SYSTEM='webalizer,awstats'" >> $VESTA/conf/vesta.conf
+fi
 
+# FTP stack
+if [ "$vsftpd" = 'yes' ]; then
+    echo "FTP_SYSTEM='vsftpd'" >> $VESTA/conf/vesta.conf
+fi
+if [ "$proftpd" = 'yes' ]; then
+    echo "FTP_SYSTEM='proftpd'" >> $VESTA/conf/vesta.conf
+fi
+
+# DNS stack
+if [ "$named" = 'yes' ]; then
+    echo "DNS_SYSTEM='bind9'" >> $VESTA/conf/vesta.conf
+fi
 
 # Mail stack
 if [ "$exim" = 'yes' ]; then
     echo "MAIL_SYSTEM='exim4'" >> $VESTA/conf/vesta.conf
+    if [ "$clamd" = 'yes'  ]; then
+        echo "ANTIVIRUS_SYSTEM='clamav-daemon'" >> $VESTA/conf/vesta.conf
+    fi
+    if [ "$spamd" = 'yes' ]; then
+        echo "ANTISPAM_SYSTEM='spamassassin'" >> $VESTA/conf/vesta.conf
+    fi
+    if [ "$dovecot" = 'yes' ]; then
+        echo "IMAP_SYSTEM='dovecot'" >> $VESTA/conf/vesta.conf
+    fi
 fi
 
 # CRON daemon
 echo "CRON_SYSTEM='cron'" >> $VESTA/conf/vesta.conf
+
+# Firewall stack
+if [ "$iptables" = 'yes' ]; then
+    echo "FIREWALL_SYSTEM='iptables'" >> $VESTA/conf/vesta.conf
+fi
+if [ "$iptables" = 'yes' ] && [ "$fail2ban" = 'yes' ]; then
+    echo "FIREWALL_EXTENSION='fail2ban'" >> $VESTA/conf/vesta.conf
+fi
+
+# Disk quota
+if [ "$quota" = 'yes' ]; then
+    echo "DISK_QUOTA='yes'" >> $VESTA/conf/vesta.conf
+fi
 
 # Backups
 echo "BACKUP_SYSTEM='local'" >> $VESTA/conf/vesta.conf
@@ -711,13 +796,43 @@ fi
 
 
 #----------------------------------------------------------#
+#                    Configure Apache                      #
+#----------------------------------------------------------#
+
+if [ "$apache" = 'yes'  ]; then
+    wget $vestacp/apache2/apache2.conf -O /etc/apache2/apache2.conf
+    wget $vestacp/apache2/status.conf -O /etc/apache2/mods-enabled/status.conf
+    wget $vestacp/logrotate/apache2 -O /etc/logrotate.d/apache2
+    a2enmod rewrite
+    a2enmod suexec
+    a2enmod ssl
+    a2enmod actions
+    a2enmod ruid2
+    mkdir -p /etc/apache2/conf.d
+    echo > /etc/apache2/conf.d/vesta.conf
+    echo "# Powered by vesta" > /etc/apache2/sites-available/default
+    echo "# Powered by vesta" > /etc/apache2/sites-available/default-ssl
+    echo "# Powered by vesta" > /etc/apache2/ports.conf
+    echo -e "/home\npublic_html/cgi-bin" > /etc/apache2/suexec/www-data
+    touch /var/log/apache2/access.log /var/log/apache2/error.log
+    mkdir -p /var/log/apache2/domains
+    chmod a+x /var/log/apache2
+    chmod 640 /var/log/apache2/access.log /var/log/apache2/error.log
+    chmod 751 /var/log/apache2/domains
+    #update-rc.d apache2 defaults
+    service apache2 start
+    #check_result $? "apache2 start failed"
+fi
+
+
+#----------------------------------------------------------#
 #                     Configure PHP-FPM                    #
 #----------------------------------------------------------#
 
 if [ "$phpfpm" = 'yes' ]; then
-    wget $vestacp/php5-fpm/www.conf -O /etc/php/7.0/fpm/pool.d/www.conf
-    #update-rc.d php7-fpm defaults
-    service php7.0-fpm start
+    wget $vestacp/php5-fpm/www.conf -O /etc/php5/fpm/pool.d/www.conf
+    #update-rc.d php5-fpm defaults
+    service php5-fpm start
     #check_result $? "php-fpm start failed"
 fi
 
@@ -735,6 +850,30 @@ for pconf in $(find /etc/php* -name php.ini); do
     sed -i 's%_open_tag = Off%_open_tag = On%g' $pconf
 done
 
+
+#----------------------------------------------------------#
+#                    Configure VSFTPD                      #
+#----------------------------------------------------------#
+
+if [ "$vsftpd" = 'yes' ]; then
+    wget $vestacp/vsftpd/vsftpd.conf -O /etc/vsftpd.conf
+    #update-rc.d vsftpd defaults
+    service vsftpd start
+    #check_result $? "vsftpd start failed"
+fi
+
+
+#----------------------------------------------------------#
+#                    Configure ProFTPD                     #
+#----------------------------------------------------------#
+
+if [ "$proftpd" = 'yes' ]; then
+    echo "127.0.0.1 $servername" >> /etc/hosts
+    wget $vestacp/proftpd/proftpd.conf -O /etc/proftpd/proftpd.conf
+    #update-rc.d proftpd defaults
+    service proftpd start
+    #check_result $? "proftpd start failed"
+fi
 
 
 #----------------------------------------------------------#
@@ -767,14 +906,44 @@ if [ "$mysql" = 'yes' ]; then
     mysql -e "DELETE FROM mysql.user WHERE user='' or password='';"
     mysql -e "FLUSH PRIVILEGES"
 
-    # phpMyAdmin
-    wget https://github.com/phpmyadmin/phpmyadmin/archive/RELEASE_4_4_15_2.zip -O /tmp/RELEASE_4_4_15_2.zip
-    unzip /tmp/RELEASE_4_4_15_2.zip -d /tmp/phpmyadmin
-    mkdir -p /etc/phpmyadmin
-    mv /tmp/phpmyadmin/phpmyadmin-RELEASE_4_4_15_2/* /etc/phpmyadmin
-    rm /tmp/RELEASE_4_4_15_2.zip
+    # Configuring phpMyAdmin
+    if [ "$apache" = 'yes' ]; then
+        wget $vestacp/pma/apache.conf -O /etc/phpmyadmin/apache.conf
+        ln -s /etc/phpmyadmin/apache.conf /etc/apache2/conf.d/phpmyadmin.conf
+    fi
     wget $vestacp/pma/config.inc.php -O /etc/phpmyadmin/config.inc.php
     chmod 777 /var/lib/phpmyadmin/tmp
+fi
+
+#----------------------------------------------------------#
+#                   Configure PostgreSQL                   #
+#----------------------------------------------------------#
+
+if [ "$postgresql" = 'yes' ]; then
+    wget $vestacp/postgresql/pg_hba.conf -O /etc/postgresql/*/main/pg_hba.conf
+    service postgresql restart
+    sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '$vpass'" 2>/dev/null
+
+    # Configuring phpPgAdmin
+    if [ "$apache" = 'yes' ]; then
+        wget $vestacp/pga/phppgadmin.conf -O /etc/apache2/conf.d/phppgadmin.conf
+    fi
+    wget $vestacp/pga/config.inc.php -O /etc/phppgadmin/config.inc.php
+fi
+
+
+#----------------------------------------------------------#
+#                      Configure Bind                      #
+#----------------------------------------------------------#
+
+if [ "$named" = 'yes' ]; then
+    wget $vestacp/bind/named.conf -O /etc/bind/named.conf
+    sed -i "s%listen-on%//listen%" /etc/bind/named.conf.options
+    chown root:bind /etc/bind/named.conf
+    chmod 640 /etc/bind/named.conf
+    #update-rc.d bind9 defaults
+    service bind9 start
+    #check_result $? "bind9 start failed"
 fi
 
 #----------------------------------------------------------#
@@ -787,6 +956,13 @@ if [ "$exim" = 'yes' ]; then
     wget $vestacp/exim/dnsbl.conf -O /etc/exim4/dnsbl.conf
     wget $vestacp/exim/spam-blocks.conf -O /etc/exim4/spam-blocks.conf
     touch /etc/exim4/white-blocks.conf
+
+    if [ "$spamd" = 'yes' ]; then
+        sed -i "s/#SPAM/SPAM/g" /etc/exim4/exim4.conf.template
+    fi
+    if [ "$clamd" = 'yes' ]; then
+        sed -i "s/#CLAMD/CLAMD/g" /etc/exim4/exim4.conf.template
+    fi
 
     chmod 640 /etc/exim4/exim4.conf.template
     rm -rf /etc/exim4/domains
@@ -802,6 +978,101 @@ if [ "$exim" = 'yes' ]; then
     #update-rc.d exim4 defaults
     service exim4 start
     #check_result $? "exim4 start failed"
+fi
+
+
+#----------------------------------------------------------#
+#                     Configure Dovecot                    #
+#----------------------------------------------------------#
+
+if [ "$dovecot" = 'yes' ]; then
+    gpasswd -a dovecot mail
+    wget $vestacp/dovecot.tar.gz -O /etc/dovecot.tar.gz
+    cd /etc
+    rm -rf dovecot dovecot.conf
+    tar -xzf dovecot.tar.gz
+    rm -f dovecot.tar.gz
+    chown -R root:root /etc/dovecot*
+    #update-rc.d dovecot defaults
+    service dovecot start
+    #check_result $? "dovecot start failed"
+fi
+
+
+#----------------------------------------------------------#
+#                     Configure ClamAV                     #
+#----------------------------------------------------------#
+
+if [ "$clamd" = 'yes' ]; then
+    gpasswd -a clamav mail
+    gpasswd -a clamav Debian-exim
+    wget $vestacp/clamav/clamd.conf -O /etc/clamav/clamd.conf
+    /usr/bin/freshclam
+    #update-rc.d clamav-daemon defaults
+    service clamav-daemon start
+    #check_result $? "clamav-daeom start failed"
+fi
+
+
+#----------------------------------------------------------#
+#                  Configure SpamAssassin                  #
+#----------------------------------------------------------#
+
+if [ "$spamd" = 'yes' ]; then
+    #update-rc.d spamassassin defaults
+    sed -i "s/ENABLED=0/ENABLED=1/" /etc/default/spamassassin
+    service spamassassin start
+    #check_result $? "spamassassin start failed"
+fi
+
+
+#----------------------------------------------------------#
+#                   Configure RoundCube                    #
+#----------------------------------------------------------#
+
+if [ "$exim" = 'yes' ] && [ "$mysql" = 'yes' ]; then
+    if [ "$apache" = 'yes' ]; then
+        wget $vestacp/roundcube/apache.conf -O /etc/roundcube/apache.conf
+        ln -s /etc/roundcube/apache.conf /etc/apache2/conf.d/roundcube.conf
+    fi
+    wget $vestacp/roundcube/main.inc.php -O /etc/roundcube/main.inc.php
+    wget $vestacp/roundcube/db.inc.php -O /etc/roundcube/db.inc.php
+    wget $vestacp/roundcube/vesta.php -O \
+        /usr/share/roundcube/plugins/password/drivers/vesta.php
+    wget $vestacp/roundcube/config.inc.php -O \
+        /etc/roundcube/plugins/password/config.inc.php
+    r="$(gen_pass)"
+    mysql -e "CREATE DATABASE roundcube"
+    mysql -e "GRANT ALL ON roundcube.* TO roundcube@localhost IDENTIFIED BY '$r'"
+    sed -i "s/%password%/$r/g" /etc/roundcube/db.inc.php
+    mysql roundcube < /usr/share/dbconfig-common/data/roundcube/install/mysql
+    php5enmod mcrypt 2>/dev/null
+    service apache2 restart
+fi
+
+
+#----------------------------------------------------------#
+#                    Configure Fail2Ban                    #
+#----------------------------------------------------------#
+
+if [ "$fail2ban" = 'yes' ]; then
+    cd /etc
+    wget $vestacp/fail2ban.tar.gz -O fail2ban.tar.gz
+    tar -xzf fail2ban.tar.gz
+    rm -f fail2ban.tar.gz
+    if [ "$dovecot" = 'no' ]; then
+        fline=$(cat /etc/fail2ban/jail.local |grep -n dovecot-iptables -A 2)
+        fline=$(echo "$fline" |grep enabled |tail -n1 |cut -f 1 -d -)
+        sed -i "${fline}s/true/false/" /etc/fail2ban/jail.local
+    fi
+    if [ "$exim" = 'no' ]; then
+        fline=$(cat /etc/fail2ban/jail.local |grep -n exim-iptables -A 2)
+        fline=$(echo "$fline" |grep enabled |tail -n1 |cut -f 1 -d -)
+        sed -i "${fline}s/true/false/" /etc/fail2ban/jail.local
+    fi
+    #update-rc.d fail2ban defaults
+    service fail2ban start
+    #check_result $? "fail2ban start failed"
 fi
 
 
