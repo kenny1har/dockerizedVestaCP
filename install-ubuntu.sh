@@ -780,37 +780,6 @@ if [ "$mysql" = 'yes' ]; then
 fi
 
 #----------------------------------------------------------#
-#                   Configure PostgreSQL                   #
-#----------------------------------------------------------#
-
-if [ "$postgresql" = 'yes' ]; then
-    wget $vestacp/postgresql/pg_hba.conf -O /etc/postgresql/*/main/pg_hba.conf
-    service postgresql restart
-    sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '$vpass'" 2>/dev/null
-
-    # Configuring phpPgAdmin
-    if [ "$apache" = 'yes' ]; then
-        wget $vestacp/pga/phppgadmin.conf -O /etc/apache2/conf.d/phppgadmin.conf
-    fi
-    wget $vestacp/pga/config.inc.php -O /etc/phppgadmin/config.inc.php
-fi
-
-
-#----------------------------------------------------------#
-#                      Configure Bind                      #
-#----------------------------------------------------------#
-
-if [ "$named" = 'yes' ]; then
-    wget $vestacp/bind/named.conf -O /etc/bind/named.conf
-    sed -i "s%listen-on%//listen%" /etc/bind/named.conf.options
-    chown root:bind /etc/bind/named.conf
-    chmod 640 /etc/bind/named.conf
-    #update-rc.d bind9 defaults
-    service bind9 start
-    #check_result $? "bind9 start failed"
-fi
-
-#----------------------------------------------------------#
 #                      Configure Exim                      #
 #----------------------------------------------------------#
 
@@ -842,76 +811,6 @@ if [ "$exim" = 'yes' ]; then
     #update-rc.d exim4 defaults
     service exim4 start
     #check_result $? "exim4 start failed"
-fi
-
-
-#----------------------------------------------------------#
-#                     Configure Dovecot                    #
-#----------------------------------------------------------#
-
-if [ "$dovecot" = 'yes' ]; then
-    gpasswd -a dovecot mail
-    wget $vestacp/dovecot.tar.gz -O /etc/dovecot.tar.gz
-    cd /etc
-    rm -rf dovecot dovecot.conf
-    tar -xzf dovecot.tar.gz
-    rm -f dovecot.tar.gz
-    chown -R root:root /etc/dovecot*
-    #update-rc.d dovecot defaults
-    service dovecot start
-    #check_result $? "dovecot start failed"
-fi
-
-
-#----------------------------------------------------------#
-#                     Configure ClamAV                     #
-#----------------------------------------------------------#
-
-if [ "$clamd" = 'yes' ]; then
-    gpasswd -a clamav mail
-    gpasswd -a clamav Debian-exim
-    wget $vestacp/clamav/clamd.conf -O /etc/clamav/clamd.conf
-    /usr/bin/freshclam
-    #update-rc.d clamav-daemon defaults
-    service clamav-daemon start
-    #check_result $? "clamav-daeom start failed"
-fi
-
-
-#----------------------------------------------------------#
-#                  Configure SpamAssassin                  #
-#----------------------------------------------------------#
-
-if [ "$spamd" = 'yes' ]; then
-    #update-rc.d spamassassin defaults
-    sed -i "s/ENABLED=0/ENABLED=1/" /etc/default/spamassassin
-    service spamassassin start
-    #check_result $? "spamassassin start failed"
-fi
-
-
-#----------------------------------------------------------#
-#                    Configure Fail2Ban                    #
-#----------------------------------------------------------#
-
-if [ "$fail2ban" = 'yes' ]; then
-    cd /etc
-    wget $vestacp/fail2ban.tar.gz -O fail2ban.tar.gz
-    tar -xzf fail2ban.tar.gz
-    rm -f fail2ban.tar.gz
-    if [ "$dovecot" = 'no' ]; then
-        fline=$(cat /etc/fail2ban/jail.local |grep -n dovecot-iptables -A 2)
-        fline=$(echo "$fline" |grep enabled |tail -n1 |cut -f 1 -d -)
-        sed -i "${fline}s/true/false/" /etc/fail2ban/jail.local
-    fi
-    if [ "$exim" = 'no' ]; then
-        fline=$(cat /etc/fail2ban/jail.local |grep -n exim-iptables -A 2)
-        fline=$(echo "$fline" |grep enabled |tail -n1 |cut -f 1 -d -)
-        sed -i "${fline}s/true/false/" /etc/fail2ban/jail.local
-    fi
-    #update-rc.d fail2ban defaults
-    service fail2ban start
-    #check_result $? "fail2ban start failed"
 fi
 
 
