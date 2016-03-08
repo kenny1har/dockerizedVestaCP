@@ -558,6 +558,8 @@ apt-get update
 echo -e '#!/bin/sh \nexit 101' > /usr/sbin/policy-rc.d
 chmod a+x /usr/sbin/policy-rc.d
 
+echo $software
+
 # Install apt packages
 apt-get -y install $software
 check_result $? "apt-get install failed"
