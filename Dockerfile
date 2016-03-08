@@ -13,10 +13,10 @@ ADD install-ubuntu.sh /install-ubuntu.sh
 RUN chmod +x /install-ubuntu.sh
 
 RUN bash /install-ubuntu.sh \
- --nginx yes --apache yes --phpfpm no \
+ --nginx yes --apache no --phpfpm yes \
  --vsftpd no --proftpd no \
- --exim yes --dovecot yes --spamassassin no --clamav no \
- --named yes \
+ --exim yes --dovecot no --spamassassin no --clamav no \
+ --named no \
  --iptables no --fail2ban no \
  --mysql yes --postgresql no \
  --remi yes \
