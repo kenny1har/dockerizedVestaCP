@@ -833,7 +833,7 @@ fi
 #----------------------------------------------------------#
 
 if [ "$phpfpm" = 'yes' ]; then
-    wget $vestacp/php7.0-fpm/www.conf -O /etc/php7.0/fpm/pool.d/www.conf
+    wget $vestacp/php5-fpm/www.conf -O /etc/php7.0/fpm/pool.d/www.conf
     #update-rc.d php7.0-fpm defaults
     service php7.0-fpm start
     #check_result $? "php-fpm start failed"
