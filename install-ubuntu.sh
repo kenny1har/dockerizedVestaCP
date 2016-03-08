@@ -793,7 +793,7 @@ if [ "$nginx" = 'yes' ]; then
     echo > /etc/nginx/conf.d/vesta.conf
     mkdir -p /var/log/nginx/domains
     #update-rc.d nginx defaults
-    service nginx start
+    #service nginx start
     #check_result $? "nginx start failed"
 fi
 
@@ -823,7 +823,7 @@ if [ "$apache" = 'yes'  ]; then
     chmod 640 /var/log/apache2/access.log /var/log/apache2/error.log
     chmod 751 /var/log/apache2/domains
     #update-rc.d apache2 defaults
-    service apache2 start
+    #service apache2 start
     #check_result $? "apache2 start failed"
 fi
 
@@ -835,7 +835,7 @@ fi
 if [ "$phpfpm" = 'yes' ]; then
     wget $vestacp/php5-fpm/www.conf -O /etc/php7.0/fpm/pool.d/www.conf
     #update-rc.d php7.0-fpm defaults
-    service php7.0-fpm start
+    #service php7.0-fpm start
     #check_result $? "php-fpm start failed"
 fi
 
@@ -861,7 +861,7 @@ done
 if [ "$vsftpd" = 'yes' ]; then
     wget $vestacp/vsftpd/vsftpd.conf -O /etc/vsftpd.conf
     #update-rc.d vsftpd defaults
-    service vsftpd start
+    #service vsftpd start
     #check_result $? "vsftpd start failed"
 fi
 
@@ -874,7 +874,7 @@ if [ "$proftpd" = 'yes' ]; then
     echo "127.0.0.1 $servername" >> /etc/hosts
     wget $vestacp/proftpd/proftpd.conf -O /etc/proftpd/proftpd.conf
     #update-rc.d proftpd defaults
-    service proftpd start
+    #service proftpd start
     #check_result $? "proftpd start failed"
 fi
 
@@ -953,7 +953,7 @@ if [ "$named" = 'yes' ]; then
     chown root:bind /etc/bind/named.conf
     chmod 640 /etc/bind/named.conf
     #update-rc.d bind9 defaults
-    service bind9 start
+    #service bind9 start
     #check_result $? "bind9 start failed"
 fi
 
@@ -987,7 +987,7 @@ if [ "$exim" = 'yes' ]; then
     service postfix stop > /dev/null 2>&1
 
     #update-rc.d exim4 defaults
-    service exim4 start
+    #service exim4 start
     #check_result $? "exim4 start failed"
 fi
 
@@ -1005,7 +1005,7 @@ if [ "$dovecot" = 'yes' ]; then
     rm -f dovecot.tar.gz
     chown -R root:root /etc/dovecot*
     #update-rc.d dovecot defaults
-    service dovecot start
+    #service dovecot start
     #check_result $? "dovecot start failed"
 fi
 
