@@ -17,9 +17,9 @@ release="$(lsb_release -r|awk '{print $2}')"
 codename="$(lsb_release -c|awk '{print $2}')"
 vestacp="http://$CHOST/$VERSION/$release"
 software="nginx apache2 apache2-utils apache2.2-common
-        apache2-suexec-custom libapache2-mod-ruid2 libapache2-mod-rpaf
-        libapache2-mod-fcgid libapache2-mod-php5 php5 php5-common php5-cgi
-        php5-mysql php5-curl php5-fpm php5-pgsql awstats webalizer vsftpd
+        apache2-suexec-custom libapache2-mod-ruid2 libapache2-mod-rpaf libapache2-mod-fcgid
+        libapache2-mod-php7.0 php7.0 php7.0-common php7.0-cgiphp7.0-mysql php7.0-fpm php7.0-curl php7.0-pgsql php7.0-mcrypt
+        awstats webalizer vsftpd
         proftpd-basic bind9 exim4 exim4-daemon-heavy clamav-daemon
         spamassassin dovecot-imapd dovecot-pop3d roundcube-core
         roundcube-mysql roundcube-plugins mysql-server mysql-common
@@ -411,6 +411,11 @@ echo "deb http://$RHOST/$codename/ $codename vesta" > $apt/vesta.list
 wget $CHOST/deb_signing.key -O deb_signing.key
 apt-key add deb_signing.key
 
+# Installing php7 repo
+apt-get -y install python-software-properties language-pack-en-base
+LC_ALL=en_US.UTF-8 add-apt-repository ppa:ondrej/php -y
+add-apt-repository ppa:nijel/phpmyadmin -y
+
 
 #----------------------------------------------------------#
 #                         Backup                           #
@@ -419,7 +424,7 @@ apt-key add deb_signing.key
 # Creating backup directory tree
 mkdir -p $vst_backups
 cd $vst_backups
-mkdir nginx apache2 php5 php5-fpm vsftpd proftpd bind exim4 dovecot clamd
+mkdir nginx apache2 php7.0 php7.0-fpm vsftpd proftpd bind exim4 dovecot clamd
 mkdir spamassassin mysql postgresql mongodb vesta
 
 # Backing up Nginx configuration
@@ -436,9 +441,9 @@ cp /etc/php.ini $vst_backups/php > /dev/null 2>&1
 cp -r /etc/php.d  $vst_backups/php > /dev/null 2>&1
 
 # Backing up PHP configuration
-service php5-fpm stop >/dev/null 2>&1
-cp /etc/php5/* $vst_backups/php5 > /dev/null 2>&1
-rm -f /etc/php5/fpm/pool.d/* >/dev/null 2>&1
+service php7.0-fpm stop >/dev/null 2>&1
+cp /etc/php7.0/* $vst_backups/php7.0 > /dev/null 2>&1
+rm -f /etc/php7.0/fpm/pool.d/* >/dev/null 2>&1
 
 # Backing up Bind configuration
 service bind9 stop > /dev/null 2>&1
@@ -504,10 +509,10 @@ if [ "$apache" = 'no' ]; then
     software=$(echo "$software" | sed -e "s/libapache2-mod-ruid2//")
     software=$(echo "$software" | sed -e "s/libapache2-mod-rpaf//")
     software=$(echo "$software" | sed -e "s/libapache2-mod-fcgid//")
-    software=$(echo "$software" | sed -e "s/libapache2-mod-php5//")
+    software=$(echo "$software" | sed -e "s/libapache2-mod-php7.0//")
 fi
 if [ "$phpfpm" = 'no' ]; then
-    software=$(echo "$software" | sed -e "s/php5-fpm//")
+    software=$(echo "$software" | sed -e "s/php7.0-fpm//")
 fi
 if [ "$vsftpd" = 'no' ]; then
     software=$(echo "$software" | sed -e "s/vsftpd//")
@@ -526,6 +531,7 @@ if [ "$exim" = 'no' ]; then
     software=$(echo "$software" | sed -e "s/dovecot-pop3d//")
     software=$(echo "$software" | sed -e "s/clamav-daemon//")
     software=$(echo "$software" | sed -e "s/spamassassin//")
+    software=$(echo "$software" | sed -e "s/php7.0-mcrypt//")
 fi
 if [ "$clamd" = 'no' ]; then
     software=$(echo "$software" | sed -e "s/clamav-daemon//")
@@ -541,13 +547,13 @@ if [ "$mysql" = 'no' ]; then
     software=$(echo "$software" | sed -e 's/mysql-server//')
     software=$(echo "$software" | sed -e 's/mysql-client//')
     software=$(echo "$software" | sed -e 's/mysql-common//')
-    software=$(echo "$software" | sed -e 's/php5-mysql//')
+    software=$(echo "$software" | sed -e 's/php7.0-mysql//')
     software=$(echo "$software" | sed -e 's/phpMyAdmin//')
 fi
 if [ "$postgresql" = 'no' ]; then
     software=$(echo "$software" | sed -e 's/postgresql-contrib//')
     software=$(echo "$software" | sed -e 's/postgresql//')
-    software=$(echo "$software" | sed -e 's/php5-pgsql//')
+    software=$(echo "$software" | sed -e 's/php7.0-pgsql//')
     software=$(echo "$software" | sed -e 's/phppgadmin//')
 fi
 if [ "$iptables" = 'no' ] || [ "$fail2ban" = 'no' ]; then
@@ -677,7 +683,7 @@ if [ "$apache" = 'no' ] && [ "$nginx"  = 'yes' ]; then
     echo "WEB_SSL_PORT='443'" >> $VESTA/conf/vesta.conf
     echo "WEB_SSL='openssl'"  >> $VESTA/conf/vesta.conf
     if [ "$phpfpm" = 'yes' ]; then
-        echo "WEB_BACKEND='php5-fpm'" >> $VESTA/conf/vesta.conf
+        echo "WEB_BACKEND='php7.0-fpm'" >> $VESTA/conf/vesta.conf
     fi
     echo "STATS_SYSTEM='webalizer,awstats'" >> $VESTA/conf/vesta.conf
 fi
@@ -830,9 +836,9 @@ fi
 #----------------------------------------------------------#
 
 if [ "$phpfpm" = 'yes' ]; then
-    wget $vestacp/php5-fpm/www.conf -O /etc/php5/fpm/pool.d/www.conf
-    #update-rc.d php5-fpm defaults
-    service php5-fpm start
+    wget $vestacp/php5-fpm/www.conf -O /etc/php/7.0/fpm/pool.d/www.conf
+    #update-rc.d php7-fpm defaults
+    service php7.0-fpm start
     #check_result $? "php-fpm start failed"
 fi
 
@@ -1046,7 +1052,6 @@ if [ "$exim" = 'yes' ] && [ "$mysql" = 'yes' ]; then
     mysql -e "GRANT ALL ON roundcube.* TO roundcube@localhost IDENTIFIED BY '$r'"
     sed -i "s/%password%/$r/g" /etc/roundcube/db.inc.php
     mysql roundcube < /usr/share/dbconfig-common/data/roundcube/install/mysql
-    php5enmod mcrypt 2>/dev/null
     service apache2 restart
 fi
 

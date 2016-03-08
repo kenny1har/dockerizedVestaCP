@@ -30,7 +30,6 @@ RUN chmod +x /etc/init.d/dovecot
 RUN cd /usr/local/vesta/data/ips && mv * 127.0.0.1 \
     && cd /etc/nginx/conf.d && sed -i -- 's/172.*.*.*:80 default;/80 default;/g' * && sed -i -- 's/172.*.*.*:8080/127.0.0.1:8080/g' *
 
-
 RUN rm -f /etc/service/sshd/down \
     && /etc/my_init.d/00_regen_ssh_host_keys.sh
 
