@@ -788,13 +788,6 @@ if [ "$exim" = 'yes' ]; then
     wget $vestacp/exim/spam-blocks.conf -O /etc/exim4/spam-blocks.conf
     touch /etc/exim4/white-blocks.conf
 
-    if [ "$spamd" = 'yes' ]; then
-        sed -i "s/#SPAM/SPAM/g" /etc/exim4/exim4.conf.template
-    fi
-    if [ "$clamd" = 'yes' ]; then
-        sed -i "s/#CLAMD/CLAMD/g" /etc/exim4/exim4.conf.template
-    fi
-
     chmod 640 /etc/exim4/exim4.conf.template
     rm -rf /etc/exim4/domains
     mkdir -p /etc/exim4/domains
