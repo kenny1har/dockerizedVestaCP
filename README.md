@@ -1,40 +1,42 @@
-# VestaCP on Docker
+VestaCP on Docker [![Build Status](https://travis-ci.org/lagun4ik/dockerizedVestaCP.svg)](https://travis-ci.org/lagun4ik/dockerizedVestaCP)
+----
 
-A dockerized version of VestaCP. Without FTP server.
+A dockerized version of VestaCP. [Without FTP server](#ssh-and-ftp).
 
-Usage
------
-
-Create the image
-```
-git clone --branch php7 https://github.com/lagun4ik/dockerizedVestaCP.git
-cd dockerizedVestaCP/
-docker build -t lagun4ik/vestacp .
-```
-
-Create the data volume
-```
-docker volume create --name=vesta-data
-```
+## Usage
 
 Running VestaCP docker image
-```
+
+`apache + nginx + php7`
+```bash
 docker run -d \
   --restart=always \
-  -p 2222:22 \
-  -p 80:80 \
-  -p 8083:8083 \
-  -p 3306:3306 \
-  -p 443:443 \
-  -p 25:25 \
-  -p 993:993 \
-  -p 110:110 \
-  -p 53:53 \
-  -p 54:54 \
-  -v vesta-data:/vesta \
-  lagun4ik/vestacp
+  -p 2222:22 -p 80:80 -p 8083:8083 -p 3306:3306 -p 443:443 \
+  -p 25:25 -p 993:993 -p 110:110  -p 53:53 -p 54:54 \
+  -v /var/vesta:/vesta \
+  lagun4ik/vestacp:php7
 ```
 
-Authorization
+`apache + nginx + php5`
+```bash
+docker run -d \
+  --restart=always \
+  -p 2222:22 -p 80:80 -p 8083:8083 -p 3306:3306 -p 443:443 \
+  -p 25:25 -p 993:993 -p 110:110  -p 53:53 -p 54:54 \
+  -v /var/vesta:/vesta \
+  lagun4ik/vestacp:latest
+```
+
+
+
+## Authorization
+
 `Login: admin`
 `Password: admin`
+
+
+## SSH and FTP
+
+Use SFTP instead of FTP.
+
+SSH and SFTP are available on the `2222` port
