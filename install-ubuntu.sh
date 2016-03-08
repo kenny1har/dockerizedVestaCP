@@ -21,10 +21,10 @@ software="nginx apache2 apache2-utils apache2.2-common
         libapache2-mod-php7.0 php7.0 php7.0-common php7.0-cgi php7.0-mysql php7.0-fpm php7.0-curl php7.0-pgsql php7.0-mcrypt
         awstats webalizer vsftpd
         proftpd-basic bind9 exim4 exim4-daemon-heavy clamav-daemon
-        spamassassin dovecot-imapd dovecot-pop3d roundcube-core
-        roundcube-mysql roundcube-plugins mysql-server mysql-common
-        mysql-client postgresql postgresql-contrib phppgadmin phpMyAdmin mc
-        flex whois rssh git idn zip sudo bc ftp lsof ntpdate rrdtool quota
+        spamassassin dovecot-imapd dovecot-pop3d
+        mysql-server mysql-common mysql-client phpMyAdmin
+        postgresql postgresql-contrib phppgadmin
+        mc flex whois rssh git idn zip sudo bc ftp lsof ntpdate rrdtool quota
         e2fslibs bsdutils e2fsprogs curl imagemagick fail2ban dnsutils
         bsdmainutils cron vesta vesta-nginx vesta-php"
 
@@ -376,20 +376,6 @@ echo "Installation backup directory: $vst_backups"
 # Printing start message and sleeping for 5 seconds
 echo -e "\n\n\n\nInstallation will take about 15 minutes ...\n"
 sleep 5
-
-
-#----------------------------------------------------------#
-#                      Checking swap                       #
-#----------------------------------------------------------#
-
-# Checking swap on small instances
-if [ -z "$(swapon -s)" ] && [ $memory -lt 1000000 ]; then
-    fallocate -l 1G /swapfile
-    chmod 600 /swapfile
-    mkswap /swapfile
-    swapon /swapfile
-    echo "/swapfile   none    swap    sw    0   0" >> /etc/fstab
-fi
 
 
 #----------------------------------------------------------#
@@ -1029,30 +1015,6 @@ if [ "$spamd" = 'yes' ]; then
     sed -i "s/ENABLED=0/ENABLED=1/" /etc/default/spamassassin
     service spamassassin start
     #check_result $? "spamassassin start failed"
-fi
-
-
-#----------------------------------------------------------#
-#                   Configure RoundCube                    #
-#----------------------------------------------------------#
-
-if [ "$exim" = 'yes' ] && [ "$mysql" = 'yes' ]; then
-    if [ "$apache" = 'yes' ]; then
-        wget $vestacp/roundcube/apache.conf -O /etc/roundcube/apache.conf
-        ln -s /etc/roundcube/apache.conf /etc/apache2/conf.d/roundcube.conf
-    fi
-    wget $vestacp/roundcube/main.inc.php -O /etc/roundcube/main.inc.php
-    wget $vestacp/roundcube/db.inc.php -O /etc/roundcube/db.inc.php
-    wget $vestacp/roundcube/vesta.php -O \
-        /usr/share/roundcube/plugins/password/drivers/vesta.php
-    wget $vestacp/roundcube/config.inc.php -O \
-        /etc/roundcube/plugins/password/config.inc.php
-    r="$(gen_pass)"
-    mysql -e "CREATE DATABASE roundcube"
-    mysql -e "GRANT ALL ON roundcube.* TO roundcube@localhost IDENTIFIED BY '$r'"
-    sed -i "s/%password%/$r/g" /etc/roundcube/db.inc.php
-    mysql roundcube < /usr/share/dbconfig-common/data/roundcube/install/mysql
-    service apache2 restart
 fi
 
 
