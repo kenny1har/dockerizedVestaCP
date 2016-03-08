@@ -84,8 +84,6 @@ RUN mkdir /vesta-start \
     && rm -rf /var/log \
     && ln -s /vesta/var/log /var/log
 
-RUN  apt-get -y --purge autoremove
-
 VOLUME /vesta
 
 RUN mkdir -p /etc/my_init.d
