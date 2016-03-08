@@ -18,7 +18,7 @@ codename="$(lsb_release -c|awk '{print $2}')"
 vestacp="http://$CHOST/$VERSION/$release"
 software="nginx apache2 apache2-utils apache2.2-common
         apache2-suexec-custom libapache2-mod-ruid2 libapache2-mod-rpaf libapache2-mod-fcgid
-        libapache2-mod-php7.0 php7.0 php7.0-common php7.0-cgiphp7.0-mysql php7.0-fpm php7.0-curl php7.0-pgsql php7.0-mcrypt
+        libapache2-mod-php7.0 php7.0 php7.0-common php7.0-cgi php7.0-mysql php7.0-fpm php7.0-curl php7.0-pgsql php7.0-mcrypt
         awstats webalizer vsftpd
         proftpd-basic bind9 exim4 exim4-daemon-heavy clamav-daemon
         spamassassin dovecot-imapd dovecot-pop3d roundcube-core
@@ -414,7 +414,7 @@ apt-key add deb_signing.key
 # Installing php7 repo
 apt-get -y install python-software-properties language-pack-en-base
 LC_ALL=en_US.UTF-8 add-apt-repository ppa:ondrej/php -y
-add-apt-repository ppa:nijel/phpmyadmin -y
+LC_ALL=en_US.UTF-8 add-apt-repository ppa:nijel/phpmyadmin -y
 
 
 #----------------------------------------------------------#
