@@ -34,7 +34,38 @@ RUN apt-get -y purge php5* \
     && apt-get -y install python-software-properties language-pack-en-base \
     && LC_ALL=en_US.UTF-8 add-apt-repository ppa:ondrej/php -y \
     && apt-get update \
-    && apt-get install -y php7.0 php7.0-common libapache2-mod-php7.0 php7.0-cgi php7.0-cli php7.0-phpdbg libphp7.0-embed php7.0-dev php7.0-curl php7.0-gd php7.0-imap php7.0-interbase php7.0-intl php7.0-ldap php7.0-mcrypt php7.0-readline php7.0-odbc php7.0-pgsql php7.0-pspell php7.0-recode php7.0-tidy php7.0-xmlrpc php7.0 php7.0-json php-all-dev php7.0-sybase php7.0-sqlite3 php7.0-mysql php7.0-opcache php7.0-bz2 \
+    && apt-get install -y \
+        php7.0-fpm \
+        php7.0-dev \
+        php7.0-curl \
+        php7.0-enchant \
+        php7.0-gd \
+        php7.0-gmp \
+        php7.0-imap \
+        php7.0-interbase \
+        php7.0-intl \
+        php7.0-ldap \
+        php7.0-mcrypt \
+        php7.0-readline \
+        php7.0-odbc \
+        php7.0-pgsql \
+        php7.0-pspell \
+        php7.0-recode \
+        php7.0-snmp \
+        php7.0-tidy \
+        php7.0-xmlrpc \
+        php7.0-xsl \
+        php7.0-json \
+        php7.0-sybase \
+        php7.0-sqlite3 \
+        php7.0-mysql \
+        php7.0-opcache \
+        php7.0-bz2 \
+        php7.0-bcmath \
+        php7.0-mbstring \
+        php7.0-soap \
+        php7.0-xml \
+        php7.0-zip \
     && rm -rf /etc/apache2/mods-enabled/php5.conf \
     && rm -rf /etc/apache2/mods-enabled/php5.load \
     && apt-get clean
@@ -58,15 +89,10 @@ RUN mkdir /vesta-start \
     && mv /etc/nginx   /vesta-start/etc/nginx \
     && rm -rf /etc/nginx \
     && ln -s /vesta/etc/nginx /etc/nginx \
-    && mv /etc/bind    /vesta-start/etc/bind \
-    && rm -rf /etc/bind \
-    && ln -s /vesta/etc/bind /etc/bind \
     && mv /etc/exim4   /vesta-start/etc/exim4 \
     && rm -rf /etc/exim4 \
     && ln -s /vesta/etc/exim4 /etc/exim4 \
-    && mv /etc/dovecot /vesta-start/etc/dovecot \
-    && rm -rf /etc/dovecot \
-    && ln -s /vesta/etc/dovecot /etc/dovecot \
+
     && mv /etc/mysql   /vesta-start/etc/mysql \
     && rm -rf /etc/mysql \
     && ln -s /vesta/etc/mysql /etc/mysql \
