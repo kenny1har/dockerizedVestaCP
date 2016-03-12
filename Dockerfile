@@ -3,6 +3,7 @@ FROM phusion/baseimage
 MAINTAINER ivan@lagunovsky.com
 
 ENV VESTA /usr/local/vesta
+ENV TERM=xterm
 
 RUN apt-get update \
  && apt-get -y upgrade \
@@ -13,14 +14,6 @@ ADD install-ubuntu.sh /install-ubuntu.sh
 RUN chmod +x /install-ubuntu.sh
 
 RUN bash /install-ubuntu.sh \
- --nginx yes --apache no --phpfpm yes \
- --vsftpd no --proftpd no \
- --exim yes --dovecot yes --spamassassin no --clamav no \
- --named yes \
- --iptables no --fail2ban no \
- --mysql yes --postgresql no \
- --remi yes \
- --quota no \
  --password admin \
  -y no -f
 
