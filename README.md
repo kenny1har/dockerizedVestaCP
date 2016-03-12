@@ -7,7 +7,7 @@ A dockerized version of VestaCP. [Without FTP server](#ssh-and-ftp).
 
 Running VestaCP docker image
 
-`apache + nginx + php7`
+`nginx + php7`
 ```bash
 docker run -d \
   --restart=always \
