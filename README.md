@@ -34,6 +34,10 @@ docker run -d \
 `Login: admin`
 `Password: admin`
 
+## Authorization mysql
+
+`Login: root`
+`Password: admin`
 
 ## SSH and FTP
 

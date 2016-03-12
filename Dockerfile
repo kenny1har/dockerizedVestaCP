@@ -6,7 +6,8 @@ ENV VESTA /usr/local/vesta
 
 RUN apt-get update \
  && apt-get -y upgrade \
- && apt-get -y install git unzip nano
+ && apt-get -y install git unzip nano \
+ && apt-get clean
 
 ADD install-ubuntu.sh /install-ubuntu.sh
 RUN chmod +x /install-ubuntu.sh
@@ -21,7 +22,8 @@ RUN bash /install-ubuntu.sh \
  --remi yes \
  --quota no \
  --password admin \
- -y no -f
+ -y no -f \
+ && apt-get clean
 
 ADD dovecot /etc/init.d/dovecot
 RUN chmod +x /etc/init.d/dovecot
