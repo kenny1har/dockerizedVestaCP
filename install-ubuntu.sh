@@ -17,8 +17,8 @@ release="$(lsb_release -r|awk '{print $2}')"
 codename="$(lsb_release -c|awk '{print $2}')"
 vestacp="http://$CHOST/$VERSION/$release"
 software="nginx
-        php7.0 php7.0-common php7.0-cgi
-        php7.0-mysql php7.0-curl php7.0-fpm php7.0-pgsql
+        php7.0-fpm php7.0-common
+        php7.0-mysql php7.0-curl php7.0-pgsql php7.0-mbstring
         awstats webalizer
         exim4 exim4-daemon-heavy
         dovecot-imapd dovecot-pop3d mysql-server mysql-common
@@ -407,12 +407,11 @@ if [ "$mysql" = 'yes' ]; then
     mysql -e "FLUSH PRIVILEGES"
 
     # install phpMyAdmin
-    wget https://github.com/phpmyadmin/phpmyadmin/archive/RELEASE_4_5_5_1.zip -O /tmp/RELEASE_4_4_15_2.zip
+    wget https://github.com/phpmyadmin/phpmyadmin/archive/RELEASE_4_5_5_1.zip -O /tmp/RELEASE_4_5_5_1.zip
     unzip /tmp/RELEASE_4_5_5_1.zip -d /tmp/phpmyadmin
-    mkdir -p /etc/phpmyadmin
+    mkdir -p /usr/share/phpmyadmin
     mv /tmp/phpmyadmin/phpmyadmin-RELEASE_4_5_5_1/* /usr/share/phpmyadmin
-    rm -rf /tmp/RELEASE_4_4_15_2.zip
-    rm -rf /tmp/phpmyadmin
+    rm -rf /tmp/RELEASE_4_4_15_2.zip /tmp/phpmyadmin
 
     # Configuring phpMyAdmin
     wget $vestacp/pma/config.inc.php -O /usr/share/phpmyadmin/config.inc.php
