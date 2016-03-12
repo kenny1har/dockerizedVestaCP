@@ -339,7 +339,6 @@ rm /tmp/vst.pem
 mv /usr/local/vesta/data/templates/web/nginx/php5-fpm /usr/local/vesta/data/templates/web/nginx/php7.0-fpm
 sed -i "s/php5/php\/7.0/" /usr/local/vesta/func/domain.sh
 
-
 #----------------------------------------------------------#
 #                     Configure Nginx                      #
 #----------------------------------------------------------#
