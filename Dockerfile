@@ -14,7 +14,8 @@ RUN chmod +x /install-ubuntu.sh
 
 RUN bash /install-ubuntu.sh \
  --password admin \
- -y no -f
+ -y no -f \
+ && apt-get clean
 
 ADD dovecot /etc/init.d/dovecot
 RUN chmod +x /etc/init.d/dovecot
