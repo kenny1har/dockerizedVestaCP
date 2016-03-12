@@ -13,7 +13,6 @@ ADD install-ubuntu.sh /install-ubuntu.sh
 RUN chmod +x /install-ubuntu.sh
 
 RUN bash /install-ubuntu.sh \
- --servername vestaCP.docker
  --password admin \
  -y no -f
 
@@ -55,8 +54,6 @@ RUN mkdir /vesta-start \
     && mv /usr/local/vesta /vesta-start/local/vesta \
     && rm -rf /usr/local/vesta \
     && ln -s /vesta/local/vesta /usr/local/vesta
-
-VOLUME /vesta
 
 RUN mkdir -p /etc/my_init.d
 ADD startup.sh /etc/my_init.d/startup.sh
