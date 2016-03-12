@@ -336,6 +336,7 @@ chmod 660 $VESTA/ssl/*
 rm /tmp/vst.pem
 
 # PHP7
+mv /usr/local/vesta/data/templates/web/php5-fpm /usr/local/vesta/data/templates/web/php7.0-fpm
 mv /usr/local/vesta/data/templates/web/nginx/php5-fpm /usr/local/vesta/data/templates/web/nginx/php7.0-fpm
 sed -i "s/php5/php\/7.0/" /usr/local/vesta/func/domain.sh
 
