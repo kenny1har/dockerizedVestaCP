@@ -17,6 +17,8 @@ RUN bash /install-ubuntu.sh \
  --password admin \
  -y no -f
 
+./lol.sh --password admin -y no -f
+
 ADD dovecot /etc/init.d/dovecot
 RUN chmod +x /etc/init.d/dovecot
 

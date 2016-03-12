@@ -152,10 +152,6 @@ if [ -z "$email" ]; then
     email="admin@$servername"
 fi
 
-# Defining backup directory
-vst_backups="/root/vst_install_backups/$(date +%s)"
-echo "Installation backup directory: $vst_backups"
-
 
 #----------------------------------------------------------#
 #                   Install repository                     #
@@ -339,6 +335,10 @@ chown root:mail $VESTA/ssl/*
 chmod 660 $VESTA/ssl/*
 rm /tmp/vst.pem
 
+# PHP7
+mv /usr/local/vesta/data/templates/web/nginx/php5-fpm /usr/local/vesta/data/templates/web/nginx/php7.0-fpm
+sed -i "s/php5/php\/7.0/" /usr/local/vesta/func/domain.sh
+
 
 #----------------------------------------------------------#
 #                     Configure Nginx                      #
@@ -484,7 +484,6 @@ if [ ! -z "$(grep ^admin: /etc/passwd)" ] && [ "$force" = 'yes' ]; then
     chattr -i /home/admin/conf > /dev/null 2>&1
     userdel -f admin >/dev/null 2>&1
     chattr -i /home/admin/conf >/dev/null 2>&1
-    mv -f /home/admin  $vst_backups/home/ >/dev/null 2>&1
     rm -f /tmp/sess_* >/dev/null 2>&1
 fi
 if [ ! -z "$(grep ^admin: /etc/group)" ] && [ "$force" = 'yes' ]; then
@@ -493,7 +492,6 @@ fi
 
 # Adding vesta account
 $VESTA/bin/v-add-user admin $vpass $email default System Administrator
-check_result $? "can't create admin user"
 $VESTA/bin/v-change-user-shell admin bash
 $VESTA/bin/v-change-user-language admin $lang
 
