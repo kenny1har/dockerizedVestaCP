@@ -34,18 +34,12 @@ RUN mkdir /vesta-start \
     && mv /home /vesta-start/home \
     && rm -rf /home \
     && ln -s /vesta/home /home \
-    && mv /etc/apache2 /vesta-start/etc/apache2 \
-    && rm -rf /etc/apache2 \
-    && ln -s /vesta/etc/apache2 /etc/apache2 \
     && mv /etc/php   /vesta-start/etc/php \
     && rm -rf /etc/php \
     && ln -s /vesta/etc/php /etc/php \
     && mv /etc/nginx   /vesta-start/etc/nginx \
     && rm -rf /etc/nginx \
     && ln -s /vesta/etc/nginx /etc/nginx \
-    && mv /etc/bind    /vesta-start/etc/bind \
-    && rm -rf /etc/bind \
-    && ln -s /vesta/etc/bind /etc/bind \
     && mv /etc/exim4   /vesta-start/etc/exim4 \
     && rm -rf /etc/exim4 \
     && ln -s /vesta/etc/exim4 /etc/exim4 \
@@ -55,18 +49,12 @@ RUN mkdir /vesta-start \
     && mv /etc/mysql   /vesta-start/etc/mysql \
     && rm -rf /etc/mysql \
     && ln -s /vesta/etc/mysql /etc/mysql \
-    && mv /etc/phpmyadmin  /vesta-start/etc/phpmyadmin \
-    && rm -rf /etc/phpmyadmin \
-    && ln -s /vesta/etc/phpmyadmin /etc/phpmyadmin \
     && mv /root /vesta-start/root \
     && rm -rf /root \
     && ln -s /vesta/root /root \
     && mv /usr/local/vesta /vesta-start/local/vesta \
     && rm -rf /usr/local/vesta \
-    && ln -s /vesta/local/vesta /usr/local/vesta \
-    && mv /var/log /vesta-start/var/log \
-    && rm -rf /var/log \
-    && ln -s /vesta/var/log /var/log
+    && ln -s /vesta/local/vesta /usr/local/vesta
 
 VOLUME /vesta
 
