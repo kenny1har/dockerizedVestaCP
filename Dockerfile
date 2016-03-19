@@ -85,7 +85,7 @@ RUN mkdir /vesta-start \
     && rm -rf /var/log \
     && ln -s /vesta/var/log /var/log
 
-VOLUME /vesta
+VOLUME /home/admin/web
 
 RUN mkdir -p /etc/my_init.d
 ADD startup.sh /etc/my_init.d/startup.sh
